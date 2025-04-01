@@ -96,39 +96,40 @@ db.password=your_secret_password
 
 #### MySQL Database Setup
 
-You need to set up the database manually, use these magical incantations:
+The database schema used in this project follows this structure:
 
 ```sql
--- Create the database
+-- Create the database if it doesn't exist
 CREATE DATABASE IF NOT EXISTS resume;
+
+-- Use the database
 USE resume;
 
--- User table for authentication
-CREATE TABLE IF NOT EXISTS users (
+-- Create the signup table (for user accounts)
+CREATE TABLE IF NOT EXISTS signup (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    fullname VARCHAR(100) NOT NULL,
     username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL,
+    phone BIGINT NOT NULL,
     password VARCHAR(100) NOT NULL,
-    fullname VARCHAR(100),
-    email VARCHAR(100),
-    phone VARCHAR(20),
-    is_admin BOOLEAN DEFAULT FALSE,
-    registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Resumes table to store created resumes
+-- Create a table to store resumes
 CREATE TABLE IF NOT EXISTS resumes (
-    resume_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    title VARCHAR(100),
-    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    content MEDIUMTEXT,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    content TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES signup(id) ON DELETE CASCADE
 );
 
--- Insert admin user (username: admin, password: admin123)
-INSERT INTO users (username, password, fullname, email, is_admin) 
-VALUES ('admin', 'admin123', 'Administrator', 'admin@resumebuilder.com', TRUE);
+-- Insert sample admin user (optional)
+INSERT INTO signup (fullname, username, email, phone, password) 
+VALUES ('Administrator', 'admin', 'admin@resumebuilder.com', 1234567890, 'admin123');
 ```
 
 #### Exploring Your Database
@@ -137,25 +138,41 @@ View and manage your data with these commands:
 
 ```bash
 # Login to MySQL
-mysql -u your_username -p
+mysql -u root -p
 
 # Use the resume database
 mysql> USE resume;
 
 # View all users
-mysql> SELECT * FROM users;
+mysql> SELECT * FROM signup;
 
 # View all resumes
 mysql> SELECT * FROM resumes;
 
 # View resumes with user info
-mysql> SELECT r.resume_id, r.title, u.username, r.created_date 
+mysql> SELECT r.id, r.title, s.username, r.created_at 
        FROM resumes r 
-       JOIN users u ON r.user_id = u.id;
+       JOIN signup s ON r.user_id = s.id;
 
-# Find a specific user
-mysql> SELECT * FROM users WHERE username LIKE '%search_term%';
+# Find a specific user (the pattern used in AdminPanel)
+mysql> SELECT * FROM signup 
+       WHERE fullname LIKE '%search_term%' 
+       OR username LIKE '%search_term%' 
+       OR email LIKE '%search_term%' 
+       OR phone LIKE '%search_term%';
 ```
+
+#### Database Configuration
+
+The application connects to the database using properties defined in `src/db.properties`:
+
+```properties
+db.url=jdbc:mysql://localhost:3306/resume
+db.user=root
+db.password=1811
+```
+
+You should modify these values according to your MySQL setup.
 
 ### 🚀 Launch Options
 
@@ -255,5 +272,5 @@ Created as part of Advanced Object-Oriented Programming project.
 ---
 
 <div align="center">
-  Made with ❤️❤️❤️🌸🌸🌸 of AOOP Team
+  AOOP Team
 </div>
