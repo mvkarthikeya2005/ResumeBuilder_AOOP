@@ -94,6 +94,69 @@ db.user=your_mysql_username
 db.password=your_secret_password
 ```
 
+#### MySQL Database Setup
+
+You need to set up the database manually, use these magical incantations:
+
+```sql
+-- Create the database
+CREATE DATABASE IF NOT EXISTS resume;
+USE resume;
+
+-- User table for authentication
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL,
+    fullname VARCHAR(100),
+    email VARCHAR(100),
+    phone VARCHAR(20),
+    is_admin BOOLEAN DEFAULT FALSE,
+    registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Resumes table to store created resumes
+CREATE TABLE IF NOT EXISTS resumes (
+    resume_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    title VARCHAR(100),
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    content MEDIUMTEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Insert admin user (username: admin, password: admin123)
+INSERT INTO users (username, password, fullname, email, is_admin) 
+VALUES ('admin', 'admin123', 'Administrator', 'admin@resumebuilder.com', TRUE);
+```
+
+#### Exploring Your Database
+
+View and manage your data with these commands:
+
+```bash
+# Login to MySQL
+mysql -u your_username -p
+
+# Use the resume database
+mysql> USE resume;
+
+# View all users
+mysql> SELECT * FROM users;
+
+# View all resumes
+mysql> SELECT * FROM resumes;
+
+# View resumes with user info
+mysql> SELECT r.resume_id, r.title, u.username, r.created_date 
+       FROM resumes r 
+       JOIN users u ON r.user_id = u.id;
+
+# Find a specific user
+mysql> SELECT * FROM users WHERE username LIKE '%search_term%';
+```
+
 ### 🚀 Launch Options
 
 <table>
